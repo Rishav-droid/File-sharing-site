@@ -352,7 +352,7 @@ app.delete('/api/files/:fileId', (req, res) => {
 
 // Serve share page
 app.get('/s/:shareId', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'share.html'));
 });
 
 // Helper function to generate a share ID
