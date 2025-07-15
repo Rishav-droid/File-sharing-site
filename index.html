@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileShare - Easy Online File Sharing</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-share-nodes"></i>
+                <h1>FileShare</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">Home</a></li>
+                    <li><a href="#">My Files</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <button id="login-btn" class="btn">Login</button>
+                <button id="signup-btn" class="btn btn-primary">Sign Up</button>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero">
+                <div class="hero-content">
+                    <h2>Share Your Files Securely</h2>
+                    <p>Upload, share, and manage your files with ease. No registration required for basic sharing.</p>
+                    <div class="upload-container">
+                        <div id="drop-area">
+                            <form class="upload-form">
+                                <input type="file" id="fileElem" multiple accept="*/*" onchange="handleFiles(this.files)">
+                                <label class="upload-label" for="fileElem">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>Drag & drop files here or click to browse</span>
+                                </label>
+                            </form>
+                            <div id="file-preview" class="file-preview"></div>
+                        </div>
+                        <button id="upload-btn" class="btn btn-primary btn-large" disabled>Upload Files</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="features">
+                <h3>Why Choose FileShare?</h3>
+                <div class="feature-cards">
+                    <div class="feature-card">
+                        <i class="fas fa-lock"></i>
+                        <h4>Secure Sharing</h4>
+                        <p>End-to-end encryption keeps your files safe and private.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-bolt"></i>
+                        <h4>Fast Transfers</h4>
+                        <p>High-speed uploads and downloads for files of any size.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-share-alt"></i>
+                        <h4>Easy Sharing</h4>
+                        <p>Generate links to share with anyone, anywhere.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="recent-files">
+                <h3>Recently Shared Files</h3>
+                <div class="file-list">
+                    <p class="empty-state">Your shared files will appear here</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-share-nodes"></i>
+                    <span>FileShare</span>
+                </div>
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Contact Us</a>
+                </div>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 FileShare. All rights reserved.</p>
+            </div>
+        </footer>
+
+        <!-- Modal for login/signup -->
+        <div id="auth-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="login">Login</button>
+                    <button class="tab-btn" data-tab="signup">Sign Up</button>
+                </div>
+                <div id="login-tab" class="tab-content active">
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    </form>
+                    <p class="form-footer">Forgot password? <a href="#">Reset it here</a></p>
+                </div>
+                <div id="signup-tab" class="tab-content">
+                    <form id="signup-form">
+                        <div class="form-group">
+                            <label for="signup-name">Full Name</label>
+                            <input type="text" id="signup-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-email">Email</label>
+                            <input type="email" id="signup-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-password">Password</label>
+                            <input type="password" id="signup-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-confirm">Confirm Password</label>
+                            <input type="password" id="signup-confirm" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                    </form>
+                    <p class="form-footer">By signing up, you agree to our <a href="#">Terms of Service</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- File sharing link modal -->
+        <div id="share-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3>Share Your File</h3>
+                <div class="share-link-container">
+                    <input type="text" id="share-link" readonly>
+                    <button id="copy-link" class="btn"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="share-options">
+                    <div class="option">
+                        <input type="checkbox" id="password-protect">
+                        <label for="password-protect">Password protect</label>
+                    </div>
+                    <div class="password-input hidden">
+                        <input type="password" id="share-password" placeholder="Enter password">
+                    </div>
+                    <div class="option">
+                        <input type="checkbox" id="expiry-date">
+                        <label for="expiry-date">Set expiry date</label>
+                    </div>
+                    <div class="date-input hidden">
+                        <input type="date" id="expiry-date-input">
+                    </div>
+                </div>
+                <div class="share-actions">
+                    <button class="btn btn-primary">Update Share Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

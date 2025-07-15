@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileShare - View Shared File</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .share-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .file-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+        }
+        
+        .file-details h2 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .file-meta {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+        
+        .password-form {
+            margin-bottom: 2rem;
+        }
+        
+        .download-section {
+            text-align: center;
+        }
+        
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .expired-message {
+            text-align: center;
+            color: var(--danger-color);
+            padding: 2rem 0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-share-nodes"></i>
+                <h1>FileShare</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="#">My Files</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <button id="login-btn" class="btn">Login</button>
+                <button id="signup-btn" class="btn btn-primary">Sign Up</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="share-container" id="share-container">
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading file information...</p>
+                </div>
+                
+                <!-- File info will be inserted here by JavaScript -->
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-share-nodes"></i>
+                    <span>FileShare</span>
+                </div>
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Contact Us</a>
+                </div>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 FileShare. All rights reserved.</p>
+            </div>
+        </footer>
+
+        <!-- Modal for login/signup -->
+        <div id="auth-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="login">Login</button>
+                    <button class="tab-btn" data-tab="signup">Sign Up</button>
+                </div>
+                <div id="login-tab" class="tab-content active">
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    </form>
+                    <p class="form-footer">Forgot password? <a href="#">Reset it here</a></p>
+                </div>
+                <div id="signup-tab" class="tab-content">
+                    <form id="signup-form">
+                        <div class="form-group">
+                            <label for="signup-name">Full Name</label>
+                            <input type="text" id="signup-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-email">Email</label>
+                            <input type="email" id="signup-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-password">Password</label>
+                            <input type="password" id="signup-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signup-confirm">Confirm Password</label>
+                            <input type="password" id="signup-confirm" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                    </form>
+                    <p class="form-footer">By signing up, you agree to our <a href="#">Terms of Service</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const shareContainer = document.getElementById('share-container');
+            const loading = document.getElementById('loading');
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+            const authModal = document.getElementById('auth-modal');
+            const closeModalBtns = document.querySelectorAll('.close-modal');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            
+            // Get share ID from URL
+            const shareId = window.location.pathname.split('/').pop();
+            
+            // Fetch file information
+            fetchFileInfo(shareId);
+            
+            // Set up event listeners
+            loginBtn.addEventListener('click', () => openModal(authModal, 'login'));
+            signupBtn.addEventListener('click', () => openModal(authModal, 'signup'));
+            
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    authModal.style.display = 'none';
+                });
+            });
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (e.target === authModal) authModal.style.display = 'none';
+            });
+            
+            // Fetch file information
+            async function fetchFileInfo(shareId) {
+                try {
+                    const response = await fetch(`/api/share/${shareId}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        displayFileInfo(data);
+                    } else if (data.passwordRequired) {
+                        displayPasswordForm(shareId);
+                    } else if (data.error === 'Link has expired') {
+                        displayExpiredMessage();
+                    } else {
+                        displayError(data.error || 'An error occurred');
+                    }
+                } catch (error) {
+                    console.error('Error fetching file info:', error);
+                    displayError('Failed to load file information');
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+            
+            // Display file information
+            function displayFileInfo(fileInfo) {
+                // Determine file icon based on mimetype
+                let iconClass = 'fa-file';
+                const mimetype = fileInfo.mimetype || '';
+                
+                if (mimetype.startsWith('image/')) iconClass = 'fa-file-image';
+                else if (mimetype.startsWith('video/')) iconClass = 'fa-file-video';
+                else if (mimetype.startsWith('audio/')) iconClass = 'fa-file-audio';
+                else if (mimetype.includes('pdf')) iconClass = 'fa-file-pdf';
+                else if (mimetype.includes('word') || fileInfo.originalName.endsWith('.doc') || fileInfo.originalName.endsWith('.docx')) iconClass = 'fa-file-word';
+                else if (mimetype.includes('excel') || fileInfo.originalName.endsWith('.xls') || fileInfo.originalName.endsWith('.xlsx')) iconClass = 'fa-file-excel';
+                else if (mimetype.includes('zip') || fileInfo.originalName.endsWith('.zip') || fileInfo.originalName.endsWith('.rar')) iconClass = 'fa-file-archive';
+                
+                const fileSize = formatFileSize(fileInfo.size);
+                
+                const fileInfoHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="file-details">
+                            <h2>${fileInfo.originalName}</h2>
+                            <div class="file-meta">
+                                <span>${fileSize}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="download-section">
+                        <a href="${fileInfo.downloadUrl}" class="btn btn-primary btn-large download-btn">
+                            <i class="fas fa-download"></i>
+                            Download File
+                        </a>
+                    </div>
+                `;
+                
+                shareContainer.innerHTML = fileInfoHTML;
+            }
+            
+            // Display password form
+            function displayPasswordForm(shareId) {
+                const formHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="file-details">
+                            <h2>Password Protected File</h2>
+                            <div class="file-meta">
+                                <span>This file is protected with a password</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="password-form">
+                        <form id="password-form">
+                            <div class="form-group">
+                                <label for="file-password">Enter Password</label>
+                                <input type="password" id="file-password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Access File</button>
+                        </form>
+                    </div>
+                `;
+                
+                shareContainer.innerHTML = formHTML;
+                
+                // Add event listener to form
+                document.getElementById('password-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const password = document.getElementById('file-password').value;
+                    
+                    try {
+                        loading.style.display = 'block';
+                        shareContainer.innerHTML = '';
+                        
+                        const response = await fetch(`/api/share/${shareId}?password=${encodeURIComponent(password)}`);
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            displayFileInfo(data);
+                        } else {
+                            displayPasswordForm(shareId);
+                            alert(data.error || 'Invalid password');
+                        }
+                    } catch (error) {
+                        console.error('Error accessing file:', error);
+                        displayError('Failed to access file');
+                    } finally {
+                        loading.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Display expired message
+            function displayExpiredMessage() {
+                const expiredHTML = `
+                    <div class="expired-message">
+                        <i class="fas fa-exclamation-circle fa-3x"></i>
+                        <h2>Link Expired</h2>
+                        <p>This sharing link has expired and is no longer available.</p>
+                    </div>
+                `;
+                
+                shareContainer.innerHTML = expiredHTML;
+            }
+            
+            // Display error message
+            function displayError(message) {
+                const errorHTML = `
+                    <div class="expired-message">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                        <h2>Error</h2>
+                        <p>${message}</p>
+                    </div>
+                `;
+                
+                shareContainer.innerHTML = errorHTML;
+            }
+            
+            // Format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // Open modal and set active tab
+            function openModal(modal, activeTab = null) {
+                modal.style.display = 'block';
+                
+                if (activeTab) {
+                    switchTab(activeTab);
+                }
+            }
+            
+            // Switch between tabs
+            function switchTab(tabId) {
+                // Update tab buttons
+                tabBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === tabId);
+                });
+                
+                // Update tab contents
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach(content => {
+                    const isActive = content.id === `${tabId}-tab`;
+                    content.classList.toggle('active', isActive);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
