@@ -17,6 +17,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '/')));
 
+// Update CORS configuration
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Disposition', 'Content-Length']
+}));
+
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -234,19 +243,21 @@ app.get('/api/download/:shareId', (req, res) => {
             return res.status(404).json({ error: 'File not found' });
         }
         
-        // Check if share has expired
-        if (share.expiresAt && new Date() > new Date(share.expiresAt)) {
-            return res.status(410).json({ error: 'Link has expired' });
-        }
-        
         // Find file
         const file = files.find(file => file.id === share.fileId);
         if (!file) {
             return res.status(404).json({ error: 'File not found' });
         }
         
+        // Set proper headers
+        res.set({
+            'Content-Type': file.mimetype,
+            'Content-Disposition': `attachment; filename="${encodeURIComponent(file.originalName)}"`,
+            'Access-Control-Expose-Headers': 'Content-Disposition'
+        });
+        
         // Send file
-        res.download(file.path, file.originalName);
+        res.sendFile(file.path);
     } catch (error) {
         console.error('Download error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -360,8 +371,23 @@ function generateShareId() {
     return crypto.randomBytes(6).toString('hex');
 }
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Visit http://localhost:${PORT} to access the application`);
+// Replace the last app.listen section with this:
+const host = process.env.HOST || '0.0.0.0';
+app.listen(PORT, host, () => {
+    console.log(`Server running on http://${host}:${PORT}`);
+    if (host === '0.0.0.0') {
+        const networkInterfaces = require('os').networkInterfaces();
+        const addresses = [];
+        for (const k in networkInterfaces) {
+            for (const k2 of networkInterfaces[k]) {
+                if (k2.family === 'IPv4' && !k2.internal) {
+                    addresses.push(k2.address);
+                }
+            }
+        }
+        console.log('Available on:');
+        addresses.forEach(addr => {
+            console.log(`  http://${addr}:${PORT}`);
+        });
+    }
 });
